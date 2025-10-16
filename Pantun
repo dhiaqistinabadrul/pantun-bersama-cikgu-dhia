@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mari Mengenal Pantun — Storybook Interaktif</title>
+  <style>
+    :root{
+      --bg:#FFF9F2; --card:#ffffff; --accent:#7FB3D5; --accent-2:#F6B8C6;
+      --text:#2d2d2d; --muted:#6b6b6b; --radius:14px;
+      font-family: "Nunito", "Poppins", Arial, sans-serif;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#F7FBFF);}
+    .container{max-width:980px;margin:24px auto;padding:20px;}
+    .storybook{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(20,30,50,0.08);overflow:hidden;}
+    header{display:flex;align-items:center;gap:16px;padding:18px 20px;background:linear-gradient(90deg,var(--accent),#9AD3DE);color:white}
+    header h1{font-size:20px;margin:0}
+    .page-wrap{display:grid;grid-template-columns:1fr 320px;gap:18px;padding:20px}
+    .page{background:linear-gradient(180deg,#ffffff,#FEFEFF);border-radius:12px;padding:18px;min-height:420px;position:relative;overflow:hidden}
+    .art{position:absolute;right:12px;bottom:12px;opacity:0.95;max-width:45%}
+    .title{font-size:18px;color:var(--text);margin:0 0 8px}
+    .lead{color:var(--muted);margin:0 0 12px}
+    .text-block{font-size:16px;line-height:1.5;color:var(--text)}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:14px}
+    button.btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;box-shadow:0 6px 14px rgba(127,179,213,0.25)}
+    button.btn.secondary{background:transparent;color:var(--accent);border:2px solid rgba(127,179,213,0.16)}
+    .small{font-size:13px;padding:6px 10px;border-radius:8px}
+    aside.sidebar{background:linear-gradient(180deg,#fff,#fbfdff);border-radius:10px;padding:12px}
+    .card{background:#fff;border-radius:10px;padding:10px;margin-bottom:12px;box-shadow:0 4px 12px rgba(10,20,40,0.03)}
+    .icon{width:42px;height:42px;border-radius:10px;background:var(--accent-2);display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:white;margin-right:8px}
+    footer{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+    /* Drag & drop */
+    .dnd{display:flex;gap:8px;flex-wrap:wrap}
+    .dnd .item{padding:8px 10px;border-radius:8px;border:2px dashed #e9e9e9;background:#fff;cursor:grab}
+    .dropzone{min-height:60px;border-radius:8px;border:2px dashed #e6f0f8;padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    /* quiz */
+    .quiz-list{list-style:none;padding:0;margin:0}
+    .quiz-list li{margin-bottom:8px}
+    .correct{background:linear-gradient(90deg,#dff7e0,#baf0c8);border:2px solid #66c366}
+    .wrong{background:linear-gradient(90deg,#ffe6e6,#ffd2d2);border:2px solid #ff8a8a}
+    /* responsive */
+    @media(max-width:920px){.page-wrap{grid-template-columns:1fr;}.art{display:none}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="storybook" role="application" aria-label="Mari Mengenal Pantun storybook">
+      <header>
+        <div style="display:flex;flex-direction:column">
+          <h1>Mari Mengenal Pantun</h1>
+          <small style="opacity:0.9">Storybook interaktif untuk Murid Tahun 3 — Pantun & Nilai Murni</small>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:12px;opacity:0.95">Suara: <select id="voiceSelect" aria-label="Pilih suara"></select></div>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <!-- MAIN PAGE AREA -->
+        <main class="page" id="page">
+          <!-- dynamic content inserted here -->
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" aria-hidden="false">
+          <div class="card">
+            <strong>Navigasi</strong>
+            <div style="margin-top:8px" class="controls">
+              <button class="btn small" id="prevBtn" title="Sebelum">◀ Sebelum</button>
+              <button class="btn small" id="nextBtn" title="Seterusnya">Seterusnya ▶</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <strong>Aksi Suara</strong>
+            <p style="margin:6px 0 8px;color:var(--muted);font-size:13px">Baca teks di muka surat ini</p>
+            <div style="display:flex;gap:8px">
+              <button class="btn small" id="readBtn">🔊 Baca</button>
+              <button class="btn secondary small" id="stopBtn">⏹ Hentikan</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <strong>Aktiviti Mini</strong>
+            <p style="margin:6px 0 8px;color:var(--muted);font-size:13px">Permainan ringkas & kuiz</p>
+            <div style="display:flex;gap:8px;flex-direction:column">
+              <button class="btn small" id="gotoDnd">Seret & Padankan</button>
+              <button class="btn small" id="gotoQuiz">Kuiz Pantun</button>
+            </div>
+          </div>
+
+          <div class="card" style="text-align:center">
+            <small style="color:var(--muted)">Simpan / cetak: fail HTML ini atau upload ke hosting anda.</small>
+          </div>
+        </aside>
+      </div>
+
+      <footer>
+        Dihasilkan oleh <strong>Dhia Qistina Binti Badrul Hisham Al Yaakubi (IPG)</strong> • © <span id="yr"></span>
+      </footer>
+    </div>
+  </div>
+
+<script>
+  // ----- DATA PAGES -----
+  const pages = [
+    {
+      id: 'cover',
+      title: 'Jom Belajar Pantun!',
+      lead: 'Keindahan Bahasa, Warisan Bangsa',
+      html: `
+        <h2 class="title">Jom Belajar Pantun!</h2>
+        <p class="lead">Keindahan Bahasa, Warisan Bangsa</p>
+        <div class="text-block">
+          <p>Selamat datang! Buku ini akan membawa kamu mengenali apa itu <strong>pantun</strong> dengan cara yang mudah dan menyeronokkan.</p>
+          <p>Klik butang <em>Seterusnya</em> untuk mula.</p>
+        </div>
+        <svg class="art" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(10,10)">
+            <rect x="0" y="0" width="140" height="140" rx="12" fill="#FFF6F8" stroke="#F6B8C6" />
+            <circle cx="40" cy="50" r="22" fill="#F6B8C6"/>
+            <rect x="80" y="40" width="44" height="24" rx="6" fill="#7FB3D5"/>
+            <text x="12" y="120" font-size="10" fill="#6b6b6b">Kelas Ceria</text>
+          </g>
+        </svg>
+      `
+    },
+    {
+      id: 'apa',
+      title: 'Apa itu Pantun?',
+      lead: '',
+      html: `
+        <h3 class="title">Apa itu Pantun?</h3>
+        <p class="text-block">Pantun ialah <strong>sejenis puisi lama orang Melayu</strong>. Ia digunakan untuk <strong>menyampaikan nasihat, perasaan, dan hiburan</strong>.</p>
+        <div style="margin-top:10px" class="text-block">
+          <p><strong>Ciri pantun:</strong></p>
+          <ul>
+            <li>Disusun dalam <strong>bentuk rangkap (4 baris)</strong></li>
+            <li>Baris pertama dan kedua ialah <strong>pembayang</strong></li>
+            <li>Baris ketiga dan keempat ialah <strong>maksud</strong></li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      id: 'ciri',
+      title: 'Ciri-ciri Pantun Empat Kerat',
+      lead: '',
+      html: `
+        <h3 class="title">Ciri-ciri Pantun Empat Kerat</h3>
+        <div class="text-block">
+          <ol>
+            <li>Ada <strong>empat baris</strong> dalam satu rangkap.</li>
+            <li>Setiap baris ada <strong>8 hingga 12 suku kata</strong>.</li>
+            <li>Rima hujungnya sama (contoh: <em>a-b-a-b</em>).</li>
+            <li>Dua baris pertama ialah <strong>pembayang</strong>, dua baris terakhir ialah <strong>maksud</strong>.</li>
+          </ol>
+        </div>
+      `
+    },
+    {
+      id: 'contoh',
+      title: 'Contoh Pantun',
+      lead: '',
+      html: `
+        <h3 class="title">Contoh Pantun</h3>
+        <div class="text-block">
+          <pre style="background:#f7fbff;padding:10px;border-radius:8px">Buah cempedak di luar pagar,
+Ambil galah tolong jolokkan;
+Saya budak baru belajar,
+Kalau salah tolong tunjukkan.</pre>
+          <p><strong>Pembayang:</strong> dua baris pertama.<br><strong>Maksud:</strong> dua baris terakhir.</p>
+          <p><em>Pantun ini menunjukkan kerendahan hati dan semangat belajar.</em></p>
+        </div>
+      `
+    },
+    {
+      id: 'fungsi',
+      title: 'Fungsi Pantun',
+      lead: '',
+      html: `
+        <h3 class="title">Fungsi Pantun</h3>
+        <div class="text-block">
+          <ul>
+            <li>Untuk <strong>menasihati</strong> dengan cara yang sopan.</li>
+            <li>Untuk <strong>menghiburkan</strong> orang yang mendengar.</li>
+            <li>Untuk menunjukkan <strong>keindahan bahasa Melayu</strong>.</li>
+            <li>Untuk menyampaikan <strong>rasa sayang dan budi bahasa</strong>.</li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      id: 'jenis',
+      title: 'Jenis-jenis Pantun (Ringkas)',
+      lead: '',
+      html: `
+        <h3 class="title">Jenis-jenis Pantun</h3>
+        <div class="text-block">
+          <p>Beberapa jenis pantun mudah:</p>
+          <ul>
+            <li>Pantun <strong>Nasihat</strong></li>
+            <li>Pantun <strong>Kasih Sayang</strong></li>
+            <li>Pantun <strong>Jenaka</strong></li>
+            <li>Pantun <strong>Budi</strong></li>
+          </ul>
+
+          <p><strong>Contoh (pantun budi):</strong></p>
+          <pre style="background:#f7fbff;padding:8px;border-radius:8px">Kalau ada sumur di ladang,
+Boleh saya menumpang mandi;
+Kalau ada umur yang panjang,
+Boleh kita berjumpa lagi.</pre>
+          <p><em>Ini pantun budi yang menunjukkan harapan untuk berjumpa lagi.</em></p>
+        </div>
+      `
+    },
+    {
+      id: 'nilai',
+      title: 'Nilai Murni dalam Pantun',
+      lead: '',
+      html: `
+        <h3 class="title">Nilai Murni dalam Pantun</h3>
+        <div class="text-block">
+          <ul>
+            <li>Rajin belajar</li>
+            <li>Hormat guru</li>
+            <li>Sayang kawan</li>
+            <li>Bangga dengan bahasa Melayu</li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      id: 'aktiviti',
+      title: 'Aktiviti: Mari Cipta Pantun (Cadangan)',
+      lead: '',
+      html: `
+        <h3 class="title">Aktiviti: Mari Cipta Pantun</h3>
+        <div class="text-block">
+          <p>Cadangkan murid cipta pantun tentang "sekolah" atau "kawan". Contoh panduan:</p>
+          <ol>
+            <li>Pilih tajuk: Sekolah / Kawan / Alam</li>
+            <li>Tulis dua baris pembayang (gambar atau suasana)</li>
+            <li>Tulis dua baris maksud (perasaan atau mesej)</li>
+          </ol>
+          <p>Contoh ringkas diberikan pada aktiviti kuiz dan seret-padankan.</p>
+        </div>
+      `
+    },
+    {
+      id: 'penutup',
+      title: 'Rumusan: Penutup',
+      lead: '',
+      html: `
+        <h3 class="title">Rumusan</h3>
+        <div class="text-block">
+          <p>Pantun ialah <strong>warisan bangsa Melayu</strong> yang indah. Kita perlu <strong>mencintai dan meneruskan</strong> tradisi berpantun agar tidak dilupakan.</p>
+          <p><em>“Pantun warisan kita, bahasa jiwa bangsa!”</em></p>
+        </div>
+      `
+    },
+    {
+      id: 'dnd',
+      title: 'Aktiviti Seret & Padankan',
+      lead: '',
+      html: `
+        <h3 class="title">Seret & Padankan</h3>
+        <div class="text-block">
+          <p>Padankan pembayang dengan maksud yang sesuai. Seret kotak di bawah ke zon kosong.</p>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <div style="flex:1">
+              <div id="dropzone" class="dropzone" aria-label="Tempat padanan">Letakkan jawapan di sini</div>
+            </div>
+            <div style="width:180px">
+              <div class="dnd" id="dndItems">
+                <div class="item" draggable="true" data-id="1">Buah cempedak di luar pagar</div>
+                <div class="item" draggable="true" data-id="2">Ambil galah tolong jolokkan</div>
+                <div class="item" draggable="true" data-id="3">Saya budak baru belajar</div>
+                <div class="item" draggable="true" data-id="4">Kalau salah tolong tunjukkan</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:10px"><button class="btn" id="checkDnd">Semak Jawapan</button></div>
+          <div id="dndResult" style="margin-top:8px;color:var(--muted)"></div>
+        </div>
+      `
+    },
+    {
+      id: 'quiz',
+      title: 'Kuiz Pantun Ringkas',
+      lead: '',
+      html: `
+        <h3 class="title">Kuiz Pantun</h3>
+        <div class="text-block">
+          <p>Soalan 1: Berapa baris ada dalam satu rangkap pantun?</p>
+          <ul class="quiz-list">
+            <li><button class="btn small quizOpt" data-correct="false">2 baris</button></li>
+            <li><button class="btn small quizOpt" data-correct="true">4 baris</button></li>
+            <li><button class="btn small quizOpt" data-correct="false">6 baris</button></li>
+          </ul>
+          <p style="margin-top:10px">Soalan 2: Dua baris pertama dipanggil?</p>
+          <ul class="quiz-list">
+            <li><button class="btn small quizOpt" data-correct="true">Pembayang</button></li>
+            <li><button class="btn small quizOpt" data-correct="false">Maksud</button></li>
+            <li><button class="btn small quizOpt" data-correct="false">Rima</button></li>
+          </ul>
+          <div id="quizResult" style="margin-top:10px;color:var(--muted)"></div>
+        </div>
+      `
+    },
+    {
+      id: 'credit',
+      title: 'Kredit',
+      lead: '',
+      html: `
+        <h3 class="title">Terima Kasih!</h3>
+        <div class="text-block">
+          <p>Storybook ini dihasilkan oleh:</p>
+          <p><strong>Dhia Qistina Binti Badrul Hisham Al Yaakubi (IPG)</strong></p>
+          <p style="margin-top:10px;font-size:13px;color:var(--muted)">Boleh digunakan sebagai bahan bacaan untuk laman pembelajaran. Sila kreditkan penulis apabila digunakan semula.</p>
+        </div>
+      `
+    }
+  ];
+
+  // ----- PAGE RENDERING -----
+  let current = 0;
+  const pageEl = document.getElementById('page');
+  const yr = document.getElementById('yr'); yr.textContent = new Date().getFullYear();
+
+  function render(){
+    const p = pages[current];
+    pageEl.innerHTML = p.html;
+    // set focus and aria
+    pageEl.setAttribute('aria-label', p.title);
+    // attach event handlers for dynamic pieces
+    attachDynamic();
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', ()=>{ if(current < pages.length-1) current++; render();});
+  document.getElementById('prevBtn').addEventListener('click', ()=>{ if(current > 0) current--; render();});
+  document.getElementById('gotoDnd').addEventListener('click', ()=>{ current = pages.findIndex(x=>x.id==='dnd'); render();});
+  document.getElementById('gotoQuiz').addEventListener('click', ()=>{ current = pages.findIndex(x=>x.id==='quiz'); render();});
+
+  // ----- Speech synthesis -----
+  const readBtn = document.getElementById('readBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const voiceSelect = document.getElementById('voiceSelect');
+
+  let voices = [];
+  function populateVoices(){
+    voices = speechSynthesis.getVoices().filter(v=>v.lang); // get available
+    voiceSelect.innerHTML = '';
+    // prefer ms-MY then ms then id-ID then en
+    const preferred = voices.filter(v => v.lang.toLowerCase().startsWith('ms') || v.lang.toLowerCase().startsWith('id') || v.lang.toLowerCase().startsWith('en'));
+    const list = preferred.length ? preferred.concat(voices.filter(v=>!preferred.includes(v))) : voices;
+    list.forEach((v,i)=>{
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${v.name} — ${v.lang}`;
+      voiceSelect.appendChild(opt);
+    });
+  }
+  populateVoices();
+  speechSynthesis.onvoiceschanged = populateVoices;
+
+  function speakText(text){
+    if(!('speechSynthesis' in window)) return alert('Maaf, pelayar anda tidak menyokong suara automatik.');
+    speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    // preferred pick: ms-MY or ms
+    const pick = voices.find(v=>/ms(-|_)?my/i.test(v.lang)) || voices.find(v=>/^ms\b/i.test(v.lang)) || voices.find(v=>/^id\b/i.test(v.lang)) || voices[0];
+    if(pick) utt.voice = pick;
+    utt.lang = pick ? pick.lang : 'ms-MY';
+    utt.rate = 0.95;
+    utt.pitch = 1.0;
+    speechSynthesis.speak(utt);
+  }
+
+  readBtn.addEventListener('click', ()=>{
+    const txt = pageEl.innerText.trim();
+    speakText(txt);
+  });
+  stopBtn.addEventListener('click', ()=> speechSynthesis.cancel());
+
+  // allow manual voice selection
+  voiceSelect.addEventListener('change', ()=>{
+    const idx = parseInt(voiceSelect.value||'0',10);
+    const v = voices[idx];
+    if(v){
+      // set selected voice by reordering voices
+      voices = [v].concat(voices.filter(x=>x!==v));
+    }
+  });
+
+  // ----- DnD logic -----
+  function attachDynamic(){
+    // DnD
+    const items = document.querySelectorAll('#dndItems .item');
+    const drop = document.getElementById('dropzone');
+    if(items.length){
+      items.forEach(it=>{
+        it.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', it.dataset.id + '||' + it.textContent));
+      });
+      drop.addEventListener('dragover', e=> e.preventDefault());
+      drop.addEventListener('drop', e=>{
+        e.preventDefault();
+        const data = e.dataTransfer.getData('text/plain');
+        if(!data) return;
+        const parts = data.split('||');
+        const id = parts[0], txt = parts[1];
+        // create token
+        const token = document.createElement('div');
+        token.textContent = txt;
+        token.className = 'item';
+        token.setAttribute('data-id', id);
+        token.style.cursor = 'default';
+        token.addEventListener('click', ()=> token.remove());
+        drop.appendChild(token);
+      });
+      document.getElementById('checkDnd').addEventListener('click', ()=>{
+        const placed = Array.from(drop.querySelectorAll('.item')).map(x=>x.dataset.id);
+        // correct order for the example: 1,2,3,4 (split for two-line pembayang + maksud)
+        const correct = ['1','2','3','4'];
+        const result = placed.length===4 && placed.join(',')===correct.join(',');
+        const el = document.getElementById('dndResult');
+        if(result) el.textContent = 'Tahniah! Susunan betul.';
+        else el.textContent = 'Belum betul. Cuba padankan pembayang dan maksud mengikut contoh.';
+      });
+    }
+
+    // Quiz
+    const qopts = document.querySelectorAll('.quizOpt');
+    if(qopts.length){
+      qopts.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const correct = btn.dataset.correct === 'true';
+          if(correct) btn.classList.add('correct');
+          else btn.classList.add('wrong');
+          // show small result
+          const res = document.getElementById('quizResult');
+          setTimeout(()=> res.textContent = correct ? 'Betul! Bagus.' : 'Maaf, cuba lagi.' , 200);
+        });
+      });
+    }
+  }
+
+  // Initial render
+  render();
+
+  // keyboard nav
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight') document.getElementById('nextBtn').click();
+    if(e.key==='ArrowLeft') document.getElementById('prevBtn').click();
+  });
+
+  // accessibility: announce page change (basic)
+  const live = document.createElement('div');
+  live.setAttribute('aria-live','polite'); live.style.position='absolute'; live.style.left='-9999px';
+  document.body.appendChild(live);
+  const origRender = render;
+  render = function(){
+    const p = pages[current];
+    pageEl.innerHTML = p.html;
+    pageEl.setAttribute('aria-label', p.title);
+    live.textContent = 'Kini muka surat: ' + p.title;
+    attachDynamic();
+  };
+  // re-render initial
+  current = 0; render();
+
+</script>
+</body>
+</html>
